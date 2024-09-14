@@ -14,8 +14,19 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String? _result;
+
+  void setResult(String result) {
+    setState(() => _result = result);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,12 +35,12 @@ class HomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('No result'),
+            Text(_result ?? 'No result'),
             ElevatedButton(
               child: const Text('Scan QR code'),
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (context) => QrCodeScanner(),
+                  builder: (context) => QrCodeScanner(setResult: setResult),
                 ),
               ),
             ),
