@@ -3,8 +3,9 @@ import 'package:edge_detection/edge_detection.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 class DocumentAlignmentPage extends StatefulWidget {
   const DocumentAlignmentPage({super.key});
@@ -67,7 +68,17 @@ class _DocumentAlignmentPageState extends State<DocumentAlignmentPage> {
 
     if (isPermissionGranted) {
       try {
-        final result = await ImageGallerySaver.saveFile(_imagePath!);
+        // Read the image file as bytes
+        File imageFile = File(_imagePath!);
+        Uint8List imageBytes = await imageFile.readAsBytes();
+
+        // Save the file using ImageGallerySaver with the MIME type and name
+        final result = await ImageGallerySaver.saveImage(
+          imageBytes,
+          quality: 100,
+          name: p.basenameWithoutExtension(_imagePath!), // Use the file's name
+        );
+
         if (result['isSuccess'] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Image saved to gallery')),
@@ -86,14 +97,15 @@ class _DocumentAlignmentPageState extends State<DocumentAlignmentPage> {
   }
 
   Future<bool> _requestStoragePermission() async {
-    if (await Permission.storage.isGranted) {
+    if (await Permission.storage.request().isGranted) {
       return true;
     }
-
-    final status = await Permission.storage.request();
-    if (status.isGranted) {
+    // For MANAGE_EXTERNAL_STORAGE, which is only for Android 11+
+    if (await Permission.manageExternalStorage.request().isGranted) {
       return true;
-    } else if (status.isPermanentlyDenied) {
+    }
+    // Handle permissions permanently denied
+    if (await Permission.manageExternalStorage.isPermanentlyDenied) {
       openAppSettings();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -101,14 +113,13 @@ class _DocumentAlignmentPageState extends State<DocumentAlignmentPage> {
         ),
       );
       return false;
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Storage permission not granted. Unable to save the image.'),
-        ),
-      );
-      return false;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Storage permission not granted. Unable to save the image.'),
+      ),
+    );
+    return false;
   }
 
   void _discardImage(BuildContext context) {
