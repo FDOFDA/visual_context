@@ -78,3 +78,7 @@ Follow these steps to set up the Visual Context app on your local system:
 - **Dependencies**: If you encounter dependency issues, run `flutter pub upgrade` to update to the latest compatible versions.
 
 For any additional help or issues, please refer to the Flutter documentation or contact Derek Oliver via a GitHub issue.
+
+
+### Video Link
+https://drive.google.com/drive/folders/1vJiPKmOlRnxmRk5VBa51fiC33IDCl_q2?usp=drive_link
